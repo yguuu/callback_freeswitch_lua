@@ -4,21 +4,8 @@ telefone = argv[1];
 contexto = argv[2];
 fila = argv[3];
 tipo = argv[4];
-gateway15 = argv[5];
-gateway11 = argv[6];
+gateway = argv[5];
 tempolimite = 12;
-
--- Identificar tronco de saida
-
-freeswitch.consoleLog("info","DDD: "..string.match(telefone, "^0%d%d", 1).." \n");
-
-ddnumero = string.match(telefone, "^0%d%d");
-
-if ddnumero == "015" then
-gateway = gateway15;
-else
-gateway = gateway11;
-end
 
 --Função de pausa
 
