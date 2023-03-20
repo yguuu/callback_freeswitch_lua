@@ -1,65 +1,65 @@
--- Variaveis Globais;
+-- Global Variables
 
-telefone = argv[1];
-contexto = argv[2];
-fila = argv[3];
-tipo = argv[4];
+number = argv[1];
+context = argv[2];
+queue = argv[3];
+name = argv[4];
 gateway = argv[5];
-tempolimite = 12;
+limittime = 12;
 
---Função de pausa
+--Stop Fuction
 
 local clock = os.clock
 function sleep(n)  -- seconds
   local t0 = clock()
   while clock() - t0 <= n do end
 end
-freeswitch.consoleLog("info","CALLBACK INICIANDO\n");
-freeswitch.consoleLog("info","CALLBACK NUMERO ALVO: " ..telefone.. ".\n");
-freeswitch.consoleLog("info","CALLBACK GATEWAY DE LIGAÇÃO: " ..gateway.. ".\n");
-freeswitch.consoleLog("info","CALLBACK CONTEXTO: " ..contexto.. " FILA: " ..fila.. ".\n");
+freeswitch.consoleLog("info","CALLBACK STARTING\n");
+freeswitch.consoleLog("info","CALLBACK TARGET NUMBER: " ..number.. ".\n");
+freeswitch.consoleLog("info","CALLBACK CALL GATEWAY: " ..gateway.. ".\n");
+freeswitch.consoleLog("info","CALLBACK CONTEXT: " ..context.. " queue: " ..queue.. ".\n");
 
---Ligando para o numero respectivo
+--Calling for the number
 
 sleep(6);
-freeswitch.consoleLog("notice","CALLBACK INICIANDO\n");
-session = freeswitch.Session(gateway..telefone, session);
+freeswitch.consoleLog("notice","CALLBACK STARTING\n");
+session = freeswitch.Session(gateway..number, session);
 session:setAutoHangup(false);
-session:setVariable("caller_id_name", tipo);
+session:setVariable("caller_id_name", name);
 
---Evitando travamentos
+--Avoid crashing
 
-contador = 0;
+counter = 0;
 state=session:getState();
 callstate=session:answered();
-while (callstate == false and contador <= tempolimite) do
+while (callstate == false and counter <= limittime) do
 sleep(1);
 state=session:getState();
 callstate=session:answered();
-session:consoleLog("debug","CALLBACK "..telefone.." STATUS DA LIGAÇÃO:"..state.."\n");
-session:consoleLog("debug","CALLBACK "..telefone.."  NÃO ATENDIDO \n");
-contador = contador + 1;
+session:consoleLog("debug","CALLBACK "..number.." CALL STATUS:"..state.."\n");
+session:consoleLog("debug","CALLBACK "..number.."  NO RESPONSE \n");
+counter = counter + 1;
 end
-if (contador >= tempolimite and callstate == false) then
-session:consoleLog("err","CALLBACK "..telefone.." TEMPO LIMITE ATINGIDO\n");
-freeswitch.consoleLog("info","CALLBACK "..telefone.." FINALIZADO.\n");
+if (counter >= limittime and callstate == false) then
+session:consoleLog("err","CALLBACK "..number.." CALL LIMIT HIT\n");
+freeswitch.consoleLog("info","CALLBACK "..number.." FINISHING.\n");
 session:hangup("USER_BUSY");
 session:destroy();
 else
 
--- Transferindo
+-- Transfer
 
-session:execute("transfer", fila.." XML "..contexto);
+session:execute("transfer", queue.." XML "..context);
 
---Identificar ligação em curso
+--Indentifing call runing
 
 state=session:getState();
 while (state == "CS_SOFT_EXECUTE") do
 sleep(2);
 state=session:getState();
 callstate=session:answered();
-session:consoleLog("info","CALLBACK "..telefone.." STATUS DA LIGAÇÃO:"..state.."\n");
+session:consoleLog("info","CALLBACK "..number.." CALL STATUS:"..state.."\n");
 end
-freeswitch.consoleLog("info","CALLBACK "..telefone.." FINALIZADO.\n");
+freeswitch.consoleLog("info","CALLBACK "..number.." FINISHING.\n");
 session:destroy();
 end
